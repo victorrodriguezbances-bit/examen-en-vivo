@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Examen en Vivo</title>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#f4f1ea;--card:#ffffff;--ink:#1d1b18;--muted:#6b665d;--line:#e2ddd2;
+  --accent:#2f4b7c;--accent-ink:#fff;--ok:#2e7d4f;--bad:#b23a3a;
+  --o1:#c0392b;--o2:#2f6db5;--o3:#c98a12;--o4:#2e8b57;
+  --gold:#d4a017;--silver:#9aa3ad;--bronze:#b0703c;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#15171b;--card:#1f2228;--ink:#eceae5;--muted:#a19c92;--line:#30343c;--accent:#6c8fd0;--accent-ink:#0f1115}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100%}
+body{padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-size:1.5rem;line-height:1.2}
+h2{font-size:1.2rem;margin-bottom:8px}
+.sub{color:var(--muted);font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0}
+input{width:100%;font-size:1.1rem;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin:8px 0}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:14px 18px;font-size:1.05rem;font-weight:600;background:var(--accent);color:var(--accent-ink);width:100%;margin-top:8px}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 200px}
+.hidden{display:none!important}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--muted);font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.err{color:var(--bad);font-size:.9rem;margin-top:6px;min-height:1.2em}
+#qr{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;width:max-content;margin:10px auto}
+.code{font-size:2rem;font-weight:800;letter-spacing:.2em;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.95rem}
+.chip.off{opacity:.45}
+.big{font-size:3rem;font-weight:800;text-align:center}
+.qtext{font-size:1.3rem;font-weight:700;line-height:1.35;margin:10px 0 14px}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.opts{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.opts.mc{grid-template-columns:1fr 1fr}}
+.opts.tf{grid-template-columns:1fr 1fr}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;color:#fff;min-height:64px;font-size:1.05rem;margin:0}
+.opt .sh{font-size:1.3rem;width:28px;text-align:center;flex:none}
+.opt.c0{background:var(--o1)}.opt.c1{background:var(--o2)}.opt.c2{background:var(--o3)}.opt.c3{background:var(--o4)}
+.opt.sel{outline:4px solid var(--ink);outline-offset:2px}
+.opt.dim{opacity:.3}
+.opt.right{outline:4px solid var(--ok);outline-offset:2px;opacity:1}
+.bar{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:6px 0 4px}
+.bar>i{display:block;height:100%;background:var(--accent);width:100%;transition:width .2s linear}
+.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem}
+.fb{text-align:center;padding:22px;border-radius:16px;color:#fff;margin:14px 0}
+.fb.ok{background:var(--ok)}.fb.bad{background:var(--bad)}.fb.none{background:var(--muted)}
+.fb b{display:block;font-size:1.6rem}
+.rank{list-style:none}
+.rank li{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.rank li.me{background:color-mix(in srgb,var(--accent) 15%,transparent);border-radius:8px;padding:10px}
+.rank .p{font-weight:800;width:2.2em;color:var(--muted)}
+.rank .n{flex:1}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:20px 0 10px}
+.pod{flex:1;max-width:150px;text-align:center}
+.pod .blk{border-radius:12px 12px 0 0;color:#fff;font-weight:800;font-size:1.6rem;display:flex;align-items:flex-start;justify-content:center;padding-top:10px}
+.pod .nm{font-weight:700;margin-bottom:4px;word-break:break-word}
+.pod .sc{color:var(--muted);font-size:.85rem;margin-bottom:6px}
+.pod.p1 .blk{background:var(--gold);height:150px}
+.pod.p2 .blk{background:var(--silver);height:110px}
+.pod.p3 .blk{background:var(--bronze);height:80px}
+.stat{display:flex;gap:10px;margin-top:8px}
+.stat div{flex:1;background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.4rem}
+.pulse{animation:pl 1.6s ease-in-out infinite}
+@keyframes pl{50%{opacity:.4}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- INICIO -->
+  <section id="v-home">
+    <div class="brand">Escuela Sabática · Cuarta semana</div>
+    <h1>Profetas del Nuevo Testamento</h1>
+    <p class="sub">Examen en vivo · Efesios 2:19–3:7 · 12 preguntas</p>
+    <div class="card">
+      <h2>Soy estudiante</h2>
+      <p class="sub">Escanea el QR que muestra el administrador, o escribe el código de sala.</p>
+      <input id="h-code" placeholder="Código de sala" autocomplete="off" style="text-transform:uppercase">
+      <button id="h-join">Entrar</button>
+    </div>
+    <div class="card">
+      <h2>Administrador</h2>
+      <input id="h-pass" type="password" placeholder="Contraseña">
+      <button id="h-admin" class="ghost">Abrir sala</button>
+      <div class="err" id="h-err"></div>
+    </div>
+  </section>
+
+  <!-- ESTUDIANTE -->
+  <section id="v-stu" class="hidden">
+    <div class="brand">Examen en vivo · <span id="s-room"></span></div>
+
+    <div id="s-name" class="card">
+      <h2>¿Cómo te llamas?</h2>
+      <input id="s-nameinp" maxlength="24" placeholder="Tu nombre" autocomplete="name">
+      <button id="s-go">Estoy listo</button>
+      <div class="err" id="s-err"></div>
+    </div>
+
+    <div id="s-wait" class="card hidden" style="text-align:center">
+      <div class="big">✓</div>
+      <h2 id="s-hello"></h2>
+      <p class="sub pulse" id="s-waittxt">Esperando que el administrador inicie el examen…</p>
+    </div>
+
+    <div id="s-q" class="hidden">
+      <div class="meta"><span id="s-qn"></span><span id="s-score"></span></div>
+      <div class="bar"><i id="s-bar"></i></div>
+      <span class="tag" id="s-type"></span>
+      <div class="qtext" id="s-qtext"></div>
+      <div class="opts" id="s-opts"></div>
+      <p class="sub" id="s-sent" style="text-align:center;margin-top:12px"></p>
+    </div>
+
+    <div id="s-fb" class="hidden"></div>
+
+    <div id="s-end" class="card hidden" style="text-align:center">
+      <h2>¡Terminaste!</h2>
+      <div class="stat"><div><b id="s-fscore">0</b>puntos</div><div><b id="s-fcorr">0</b>correctas</div></div>
+      <p class="sub pulse" style="margin-top:12px">Espera a que se active el podio…</p>
+    </div>
+
+    <div id="s-pod" class="hidden"></div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="v-adm" class="hidden">
+    <div class="brand">Panel del administrador</div>
+
+    <div id="a-lobby">
+      <h1>Sala abierta</h1>
+      <div class="card" style="text-align:center">
+        <p class="sub">Escaneen para unirse</p>
+        <div id="qr"></div>
+        <div class="code" id="a-code">······</div>
+        <p class="sub" id="a-link" style="word-break:break-all;font-size:.8rem;margin-top:6px"></p>
+      </div>
+      <div class="card">
+        <h2>Conectados: <span id="a-count">0</span></h2>
+        <div class="chips" id="a-chips"><span class="sub">Aún no hay estudiantes…</span></div>
+        <button id="a-start" disabled>Iniciar examen</button>
+      </div>
+    </div>
+
+    <div id="a-run" class="hidden">
+      <div class="meta"><span id="a-qn"></span><span id="a-ans"></span></div>
+      <div class="bar"><i id="a-bar"></i></div>
+      <span class="tag" id="a-type"></span>
+      <div class="qtext" id="a-qtext"></div>
+      <div class="opts" id="a-opts"></div>
+      <div class="card" id="a-mini"></div>
+      <div class="row"><button class="ghost" id="a-skip">Cerrar pregunta ahora</button></div>
+    </div>
+
+    <div id="a-done" class="hidden">
+      <h1>Examen terminado</h1>
+      <div class="card"><h2>Clasificación (solo tú la ves)</h2><ul class="rank" id="a-rank"></ul></div>
+      <button id="a-podium">Activar podio en todos los teléfonos</button>
+      <button class="ghost" id="a-csv">Descargar resultados (CSV)</button>
+    </div>
+
+    <div id="a-pod" class="hidden"></div>
+  </section>
+</div>
+
+<script>
+/* ================== CONFIGURACIÓN ================== */
+const ADMIN_PASS = "profeta2026";   // cambia la contraseña aquí
+const TIME_LIMIT = 20;              // segundos por pregunta
+const REVEAL_MS  = 5000;            // tiempo mostrando la respuesta correcta
+const PREFIX     = "inverso-exam-";
+
+/* ================== PREGUNTAS ================== */
+// type: "mc" = marcar, "tf" = verdadero/falso. a = índice de la respuesta correcta.
+const QUESTIONS = [
+ {type:"mc",q:"¿Qué significa la palabra griega «apostolos»?",o:["Mensajero o enviado","Maestro de la ley","Discípulo","Anciano de la iglesia"],a:0},
+ {type:"tf",q:"La lección compara al Espíritu Santo con el «motor» de la inspiración divina, que permaneció igual en ambos testamentos.",a:0},
+ {type:"tf",q:"Todos los profetas del Nuevo Testamento fueron también apóstoles.",a:1},
+ {type:"mc",q:"¿Cuántas veces se autodenominó Pablo «apóstol» en sus epístolas?",o:["Tres","Siete","Doce","Quince"],a:2},
+ {type:"mc",q:"¿Quién es la primera mujer identificada como «profetisa» en el Nuevo Testamento?",o:["María","Ana","Priscila","Dorcas"],a:1},
+ {type:"mc",q:"¿Qué edad tenía Ana cuando reconoció al niño Jesús en el templo?",o:["66 años","70 años","84 años","90 años"],a:2},
+ {type:"tf",q:"Las palabras proféticas de las cuatro hijas de Felipe forman parte del canon bíblico.",a:1},
+ {type:"mc",q:"¿Qué dos profetas «consolaron y animaron mucho» a los hermanos según Hechos 15:32?",o:["Pablo y Bernabé","Pedro y Juan","Judas y Silas","Timoteo y Tito"],a:2},
+ {type:"mc",q:"¿A quién encargó Pablo nombrar líderes para los creyentes de Creta?",o:["Timoteo","Tito","Silas","Apolos"],a:1},
+ {type:"tf",q:"Deuteronomio 18:15, el profeta «como Moisés», es una profecía que apunta a Jesús.",a:0},
+ {type:"mc",q:"¿Cómo consideraba Elena G. de White sus propios escritos?",o:["Una revelación superior a la Biblia","Una «luz menor» que guía a la «luz mayor»","Un reemplazo de las Escrituras","Un simple comentario histórico"],a:1},
+ {type:"tf",q:"La serie «El gran conflicto» comienza y termina con las palabras «Dios es amor».",a:0},
+];
+const TF_OPTS = ["Verdadero","Falso"];
+const SHAPES = ["▲","◆","●","■"];
+
+/* ================== UTILIDADES ================== */
+const $ = id => document.getElementById(id);
+const show = (id,on=true) => $(id).classList.toggle("hidden",!on);
+const views = ["v-home","v-stu","v-adm"];
+const goView = v => views.forEach(x=>show(x,x===v));
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle = a => {a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const randCode = () => {const c="ABCDEFGHJKMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;};
+const lsGet = k => {try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet = (k,v) => {try{localStorage.setItem(k,v)}catch(e){}};
+let wakeLock=null;
+async function keepAwake(){try{if("wakeLock" in navigator){wakeLock=await navigator.wakeLock.request("screen");}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeLock)keepAwake();});
+
+function optHTML(q, cls=""){
+  const opts = q.type==="tf"?TF_OPTS:q.o;
+  return opts.map((t,i)=>`<button class="opt c${q.type==="tf"?(i===0?3:0):i} ${cls}" data-i="${i}"><span class="sh">${q.type==="tf"?(i===0?"✓":"✗"):SHAPES[i]}</span><span>${esc(t)}</span></button>`).join("");
+}
+function podiumHTML(rank, meName){
+  const top = rank.slice(0,3);
+  const slot = (r,p)=> r?`<div class="pod p${p}"><div class="nm">${esc(r.name)}</div><div class="sc">${r.score} pts</div><div class="blk">${p}</div></div>`:`<div class="pod p${p}"></div>`;
+  let h = `<h1 style="text-align:center">🏆 Podio</h1><div class="podium">${slot(top[1],2)}${slot(top[0],1)}${slot(top[2],3)}</div>`;
+  if(meName){
+    const pos = rank.findIndex(r=>r.name===meName);
+    if(pos>=0) h += `<div class="card" style="text-align:center"><p class="sub">Tu posición</p><div class="big">${pos+1}°</div><div class="stat"><div><b>${rank[pos].score}</b>puntos</div><div><b>${rank[pos].correct}/${QUESTIONS.length}</b>correctas</div></div></div>`;
+  }
+  h += `<div class="card"><h2>Clasificación</h2><ul class="rank">${rank.map((r,i)=>`<li class="${r.name===meName?"me":""}"><span class="p">${i+1}</span><span class="n">${esc(r.name)}</span><b>${r.score}</b></li>`).join("")}</ul></div>`;
+  return h;
+}
+
+/* ================== INICIO ================== */
+const params = new URLSearchParams(location.search);
+const roomParam = (params.get("sala")||"").toUpperCase();
+if(roomParam){ startStudent(roomParam); } else { goView("v-home"); }
+
+$("h-join").onclick = ()=>{
+  const c = $("h-code").value.trim().toUpperCase();
+  if(c.length<4){$("h-err").textContent="Escribe el código de sala.";return;}
+  startStudent(c);
+};
+$("h-admin").onclick = ()=>{
+  if($("h-pass").value!==ADMIN_PASS){$("h-err").textContent="Contraseña incorrecta.";return;}
+  startAdmin();
+};
+$("h-pass").addEventListener("keydown",e=>{if(e.key==="Enter")$("h-admin").click();});
+
+/* ================== ADMINISTRADOR ================== */
+function startAdmin(){
+  goView("v-adm"); keepAwake();
+  const code = randCode();
+  const players = new Map();       // sid -> {name, score, correct, conn, answers:{}}
+  let order=[], cur=-1, phase="lobby", qStart=0, timer=null, tick=null;
+
+  const peer = new Peer(PREFIX+code);
+  peer.on("open",()=>{
+    $("a-code").textContent = code;
+    const url = location.origin+location.pathname+"?sala="+code;
+    $("a-link").textContent = url;
+    $("qr").innerHTML=""; new QRCode($("qr"),{text:url,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
+  });
+  peer.on("error",e=>{
+    if(e.type==="unavailable-id"){ alert("Ese código ya está en uso. Recarga para generar otro."); }
+    else console.warn(e);
+  });
+  peer.on("disconnected",()=>{try{peer.reconnect()}catch(e){}});
+
+  peer.on("connection",conn=>{
+    conn.on("data",msg=>{
+      if(!msg||typeof msg!=="object")return;
+      if(msg.t==="join"){
+        const name = String(msg.name||"").trim().slice(0,24)||"Anónimo";
+        const sid = String(msg.sid||"");
+        let p = players.get(sid);
+        if(!p){
+          // evita nombres duplicados
+          let n=name,k=2; const names=[...players.values()].map(x=>x.name);
+          while(names.includes(n)) n=name+" "+(k++);
+          p={name:n,score:0,correct:0,answers:{},conn}; players.set(sid,p);
+        } else p.conn=conn;
+        conn.sid=sid;
+        send(p,{t:"welcome",name:p.name,phase,score:p.score,correct:p.correct});
+        if(phase==="question") sendQuestion(p);
+        renderLobby();
+      }
+      if(msg.t==="ans" && phase==="question"){
+        const p=players.get(conn.sid); if(!p) return;
+        if(msg.i!==cur || p.answers[cur]) return;
+        const q=order[cur];
+        const ms=Math.max(0,Math.min(TIME_LIMIT*1000,Number(msg.ms)||TIME_LIMIT*1000));
+        const ok = Number(msg.choice)===q.a;
+        const pts = ok ? Math.round(500+500*(1-ms/(TIME_LIMIT*1000))) : 0;
+        p.answers[cur]={choice:Number(msg.choice),ms,ok,pts};
+        updateAnsCount();
+        if(answeredCount()>=onlineCount()) closeQuestion();
+      }
+    });
+    conn.on("close",renderLobby);
+  });
+
+  const send=(p,m)=>{try{if(p.conn&&p.conn.open)p.conn.send(m)}catch(e){}};
+  const onlineCount=()=>[...players.values()].filter(p=>p.conn&&p.conn.open).length;
+  const answeredCount=()=>[...players.values()].filter(p=>p.answers[cur]).length;
+  const ranking=()=>[...players.values()].map(p=>({name:p.name,score:p.score,correct:p.correct})).sort((a,b)=>b.score-a.score||b.correct-a.correct);
+
+  function renderLobby(){
+    const list=[...players.values()];
+    $("a-count").textContent = onlineCount();
+    $("a-chips").innerHTML = list.length? list.map(p=>`<span class="chip ${p.conn&&p.conn.open?"":"off"}">${esc(p.name)}</span>`).join("") : `<span class="sub">Aún no hay estudiantes…</span>`;
+    $("a-start").disabled = list.length===0;
+  }
+
+  $("a-start").onclick=()=>{
+    order = shuffle(QUESTIONS).map(q=>{
+      if(q.type==="tf") return {...q};
+      const idx = shuffle([0,1,2,3]);
+      return {...q,o:idx.map(i=>q.o[i]),a:idx.indexOf(q.a)};
+    });
+    show("a-lobby",false); show("a-run",true);
+    nextQuestion();
+  };
+
+  function sendQuestion(p){
+    const q=order[cur];
+    const elapsed=Date.now()-qStart;
+    send(p,{t:"q",i:cur,total:order.length,type:q.type,text:q.q,o:q.type==="tf"?TF_OPTS:q.o,limit:Math.max(1,TIME_LIMIT*1000-elapsed),score:p.score});
+  }
+
+  function nextQuestion(){
+    cur++;
+    if(cur>=order.length){ return finish(); }
+    phase="question"; qStart=Date.now();
+    const q=order[cur];
+    $("a-qn").textContent=`Pregunta ${cur+1} de ${order.length}`;
+    $("a-type").textContent=q.type==="tf"?"Verdadero o falso":"Marca la correcta";
+    $("a-qtext").textContent=q.q;
+    $("a-opts").className="opts "+q.type;
+    $("a-opts").innerHTML=optHTML(q);
+    $("a-opts").querySelectorAll("button").forEach(b=>b.disabled=true);
+    $("a-mini").innerHTML=""; show("a-mini",false); show("a-skip",true);
+    players.forEach(p=>sendQuestion(p));
+    updateAnsCount();
+    clearInterval(tick);
+    tick=setInterval(()=>{const r=1-(Date.now()-qStart)/(TIME_LIMIT*1000);$("a-bar").style.width=Math.max(0,r*100)+"%";},200);
+    clearTimeout(timer); timer=setTimeout(closeQuestion,TIME_LIMIT*1000+800);
+  }
+  function updateAnsCount(){ $("a-ans").textContent=`Respuestas: ${answeredCount()}/${onlineCount()}`; }
+
+  function closeQuestion(){
+    if(phase!=="question")return;
+    phase="reveal"; clearTimeout(timer); clearInterval(tick); $("a-bar").style.width="0%";
+    const q=order[cur];
+    players.forEach(p=>{
+      const a=p.answers[cur];
+      if(a&&a.ok){p.score+=a.pts;p.correct++;}
+      send(p,{t:"reveal",i:cur,a:q.a,correctText:(q.type==="tf"?TF_OPTS:q.o)[q.a],
+        mine:a?a.choice:null,ok:!!(a&&a.ok),pts:a?a.pts:0,score:p.score,last:cur===order.length-1});
+    });
+    $("a-opts").querySelectorAll("button").forEach(b=>{const i=+b.dataset.i;b.classList.add(i===q.a?"right":"dim");});
+    const counts=(q.type==="tf"?TF_OPTS:q.o).map((_,i)=>[...players.values()].filter(p=>p.answers[cur]&&p.answers[cur].choice===i).length);
+    const top=ranking().slice(0,5);
+    $("a-mini").innerHTML=`<p class="sub">Respuestas: ${counts.map((c,i)=>`${q.type==="tf"?TF_OPTS[i]:SHAPES[i]} ${c}`).join(" · ")}</p>`+
+      `<h2 style="margin-top:10px">Top 5</h2><ul class="rank">${top.map((r,i)=>`<li><span class="p">${i+1}</span><span class="n">${esc(r.name)}</span><b>${r.score}</b></li>`).join("")}</ul>`;
+    show("a-mini",true); show("a-skip",false);
+    setTimeout(nextQuestion,REVEAL_MS);
+  }
+  $("a-skip").onclick=closeQuestion;
+
+  function finish(){
+    phase="finished";
+    players.forEach(p=>send(p,{t:"end",score:p.score,correct:p.correct}));
+    show("a-run",false); show("a-done",true);
+    $("a-rank").innerHTML=ranking().map((r,i)=>`<li><span class="p">${i+1}</span><span class="n">${esc(r.name)}</span><span class="sub" style="margin-right:12px">${r.correct}/${order.length}</span><b>${r.score}</b></li>`).join("");
+  }
+
+  $("a-podium").onclick=()=>{
+    phase="podium";
+    const r=ranking();
+    players.forEach(p=>send(p,{t:"podium",ranking:r}));
+    show("a-done",false); show("a-pod",true);
+    $("a-pod").innerHTML=podiumHTML(r,null)+`<button class="ghost" onclick="location.href=location.pathname">Nueva sala</button>`;
+  };
+
+  $("a-csv").onclick=()=>{
+    const head=["Puesto","Nombre","Puntaje","Correctas",...order.map((_,i)=>"P"+(i+1))];
+    const rows=[...players.values()].sort((a,b)=>b.score-a.score).map((p,i)=>[i+1,p.name,p.score,p.correct,...order.map((_,k)=>p.answers[k]?(p.answers[k].ok?"✓ ":"✗ ")+(p.answers[k].ms/1000).toFixed(1)+"s":"—")]);
+    const csv="﻿"+[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="resultados_examen.csv";a.click();
+  };
+}
+
+/* ================== ESTUDIANTE ================== */
+function startStudent(code){
+  goView("v-stu"); keepAwake();
+  $("s-room").textContent="Sala "+code;
+  let sid=lsGet("exam_sid"); if(!sid){sid=Math.random().toString(36).slice(2)+Date.now().toString(36);lsSet("exam_sid",sid);}
+  const savedName=lsGet("exam_name"); if(savedName)$("s-nameinp").value=savedName;
+  let conn=null, myName="", curQ=null, qRecv=0, answered=false, barT=null, joined=false;
+  const peer=new Peer();
+  const panels=["s-name","s-wait","s-q","s-fb","s-end","s-pod"];
+  const only=id=>panels.forEach(p=>show(p,p===id));
+
+  function connect(){
+    conn=peer.connect(PREFIX+code,{reliable:true});
+    conn.on("open",()=>{ $("s-err").textContent=""; if(joined) conn.send({t:"join",name:myName,sid}); });
+    conn.on("data",onMsg);
+    conn.on("close",()=>{ if(joined){ $("s-waittxt").textContent="Reconectando…"; setTimeout(connect,1500);} });
+    conn.on("error",()=>{});
+  }
+  peer.on("open",connect);
+  peer.on("error",e=>{
+    if(e.type==="peer-unavailable") $("s-err").textContent="No se encontró la sala. Verifica el código o pide al administrador que la abra.";
+    else $("s-err").textContent="Problema de conexión. Revisa tu internet.";
+    if(joined) setTimeout(()=>{try{connect()}catch(_){}} ,2000);
+  });
+
+  $("s-go").onclick=()=>{
+    const n=$("s-nameinp").value.trim();
+    if(n.length<2){$("s-err").textContent="Escribe tu nombre.";return;}
+    if(!conn||!conn.open){$("s-err").textContent="Conectando con la sala… intenta en unos segundos.";return;}
+    myName=n; lsSet("exam_name",n); joined=true;
+    conn.send({t:"join",name:n,sid});
+  };
+  $("s-nameinp").addEventListener("keydown",e=>{if(e.key==="Enter")$("s-go").click();});
+
+  function onMsg(m){
+    if(!m||typeof m!=="object")return;
+    if(m.t==="welcome"){
+      myName=m.name; $("s-hello").textContent="¡Hola, "+m.name+"!";
+      $("s-waittxt").textContent="Esperando que el administrador inicie el examen…";
+      if(m.phase==="lobby") only("s-wait");
+      else if(m.phase==="finished"){ $("s-fscore").textContent=m.score;$("s-fcorr").textContent=m.correct;only("s-end"); }
+      else { $("s-waittxt").textContent="El examen ya empezó. Entrarás en la siguiente pregunta…"; only("s-wait"); }
+    }
+    if(m.t==="q"){
+      curQ=m; answered=false; qRecv=performance.now();
+      $("s-qn").textContent=`Pregunta ${m.i+1} de ${m.total}`;
+      $("s-score").textContent=`${m.score} pts`;
+      $("s-type").textContent=m.type==="tf"?"Verdadero o falso":"Marca la correcta";
+      $("s-qtext").textContent=m.text;
+      $("s-opts").className="opts "+m.type;
+      $("s-opts").innerHTML=optHTML({type:m.type,o:m.o});
+      $("s-sent").textContent="";
+      $("s-opts").querySelectorAll("button").forEach(b=>b.onclick=()=>answer(+b.dataset.i,b));
+      only("s-q");
+      clearInterval(barT);
+      const lim=m.limit;
+      barT=setInterval(()=>{
+        const r=1-(performance.now()-qRecv)/lim;
+        $("s-bar").style.width=Math.max(0,r*100)+"%";
+        if(r<=0){clearInterval(barT); if(!answered){lock(); $("s-sent").textContent="Se acabó el tiempo";}}
+      },100);
+    }
+    if(m.t==="reveal"){
+      clearInterval(barT);
+      const cls = m.mine===null?"none":(m.ok?"ok":"bad");
+      const title = m.mine===null?"Sin respuesta":(m.ok?"¡Correcto!":"Incorrecto");
+      $("s-fb").innerHTML=`<div class="fb ${cls}"><b>${title}</b>${m.ok?"+"+m.pts+" puntos":"Respuesta: "+esc(m.correctText)}</div>
+        <div class="card" style="text-align:center"><p class="sub">Tu puntaje</p><div class="big">${m.score}</div><p class="sub">${m.last?"Fin del examen…":"Prepárate para la siguiente…"}</p></div>`;
+      only("s-fb");
+    }
+    if(m.t==="end"){ $("s-fscore").textContent=m.score;$("s-fcorr").textContent=m.correct; only("s-end"); }
+    if(m.t==="podium"){ $("s-pod").innerHTML=podiumHTML(m.ranking,myName); only("s-pod"); }
+  }
+
+  function lock(){ $("s-opts").querySelectorAll("button").forEach(b=>b.disabled=true); }
+  function answer(i,btn){
+    if(answered||!curQ)return;
+    answered=true;
+    const ms=Math.round(performance.now()-qRecv)+(TIME_LIMIT*1000-curQ.limit);
+    conn.send({t:"ans",i:curQ.i,choice:i,ms});
+    lock();
+    $("s-opts").querySelectorAll("button").forEach(b=>b.classList.add(b===btn?"sel":"dim"));
+    $("s-sent").textContent=`Respuesta enviada en ${(ms/1000).toFixed(1)} s`;
+  }
+}
+</script>
+</body>
+</html>
