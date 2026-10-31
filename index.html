@@ -61,14 +61,34 @@ button:disabled{opacity:.45;cursor:default}
 .rank li.me{background:color-mix(in srgb,var(--accent) 15%,transparent);border-radius:8px;padding:10px}
 .rank .p{font-weight:800;width:2.2em;color:var(--muted)}
 .rank .n{flex:1}
-.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:20px 0 10px}
-.pod{flex:1;max-width:150px;text-align:center}
-.pod .blk{border-radius:12px 12px 0 0;color:#fff;font-weight:800;font-size:1.6rem;display:flex;align-items:flex-start;justify-content:center;padding-top:10px}
-.pod .nm{font-weight:700;margin-bottom:4px;word-break:break-word}
-.pod .sc{color:var(--muted);font-size:.85rem;margin-bottom:6px}
-.pod.p1 .blk{background:var(--gold);height:150px}
-.pod.p2 .blk{background:var(--silver);height:110px}
-.pod.p3 .blk{background:var(--bronze);height:80px}
+.stage{position:relative;overflow:hidden;border-radius:20px;padding:22px 12px 0;margin:10px 0 14px;
+  background:radial-gradient(ellipse at 50% 0%,#3b4f8a 0%,#1b2240 55%,#10142a 100%);color:#fff}
+.stage::before{content:"";position:absolute;inset:0;background:conic-gradient(from 200deg at 50% -10%,transparent 0 40deg,rgba(255,255,255,.10) 50deg,transparent 60deg 120deg,rgba(255,255,255,.08) 130deg,transparent 140deg);pointer-events:none}
+.stage h1{text-align:center;font-size:1.6rem;letter-spacing:.02em;position:relative}
+.stage .st{text-align:center;color:#c9d2ee;font-size:.9rem;margin-top:4px;position:relative}
+.podium{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-top:18px;min-height:300px}
+.pod{flex:1;max-width:150px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.pod .who{opacity:0;transform:translateY(14px) scale(.9);transition:all .6s cubic-bezier(.2,1.4,.4,1)}
+.pod.on .who{opacity:1;transform:none}
+.pod .av{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.3rem;color:#1b2240;margin:0 auto 6px;border:3px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.pod.p1 .av{width:72px;height:72px;font-size:1.6rem;background:var(--gold)}
+.pod.p2 .av{background:var(--silver)}.pod.p3 .av{background:var(--bronze)}
+.pod .crown{font-size:1.8rem;line-height:1;margin-bottom:2px;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.pod .nm{font-weight:800;word-break:break-word;font-size:1rem;line-height:1.15}
+.pod .sc{color:#c9d2ee;font-size:.85rem;margin:2px 0 8px}
+.pod .blk{width:100%;height:0;border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:10px;font-weight:900;font-size:2rem;color:rgba(255,255,255,.95);text-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;transition:height 1s cubic-bezier(.2,.9,.3,1.1)}
+.pod.p1 .blk{background:linear-gradient(180deg,#f2c94c,#c99a12)}
+.pod.p2 .blk{background:linear-gradient(180deg,#cfd6de,#8d97a2)}
+.pod.p3 .blk{background:linear-gradient(180deg,#d9955a,#9c5f2e)}
+.pod.p1.on .blk{height:160px}.pod.p2.on .blk{height:115px}.pod.p3.on .blk{height:80px}
+.later{opacity:0;transform:translateY(16px);transition:all .7s ease}
+.later.on{opacity:1;transform:none}
+.mine{text-align:center;border:2px solid var(--accent)}
+.mine .big{color:var(--accent)}
+.rank .md{width:2.2em;font-size:1.1rem}
+.rank .ex{color:var(--muted);font-size:.8rem;margin-right:12px;text-align:right}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 .stat{display:flex;gap:10px;margin-top:8px}
 .stat div{flex:1;background:var(--bg);border-radius:12px;padding:10px;text-align:center}
 .stat b{display:block;font-size:1.4rem}
@@ -177,7 +197,7 @@ button:disabled{opacity:.45;cursor:default}
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
-const ADMIN_PASS = "profeta2026";   // cambia la contraseña aquí
+const ADMIN_PASS = "12345678";   // cambia la contraseña aquí
 const TIME_LIMIT = 20;              // segundos por pregunta
 const REVEAL_MS  = 5000;            // tiempo mostrando la respuesta correcta
 const PREFIX     = "inverso-exam-";
@@ -219,16 +239,41 @@ function optHTML(q, cls=""){
   const opts = q.type==="tf"?TF_OPTS:q.o;
   return opts.map((t,i)=>`<button class="opt c${q.type==="tf"?(i===0?3:0):i} ${cls}" data-i="${i}"><span class="sh">${q.type==="tf"?(i===0?"✓":"✗"):SHAPES[i]}</span><span>${esc(t)}</span></button>`).join("");
 }
+function initials(n){return n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"?";}
 function podiumHTML(rank, meName){
-  const top = rank.slice(0,3);
-  const slot = (r,p)=> r?`<div class="pod p${p}"><div class="nm">${esc(r.name)}</div><div class="sc">${r.score} pts</div><div class="blk">${p}</div></div>`:`<div class="pod p${p}"></div>`;
-  let h = `<h1 style="text-align:center">🏆 Podio</h1><div class="podium">${slot(top[1],2)}${slot(top[0],1)}${slot(top[2],3)}</div>`;
+  const top = rank.slice(0,3), N = QUESTIONS.length;
+  const slot = (r,p)=> r?`<div class="pod p${p}" data-p="${p}"><div class="who">${p===1?'<div class="crown">👑</div>':''}<div class="av">${esc(initials(r.name))}</div><div class="nm">${esc(r.name)}</div><div class="sc">${r.score} pts · ${r.correct}/${N}</div></div><div class="blk">${p}</div></div>`:`<div class="pod p${p}" data-p="${p}"><div class="blk"></div></div>`;
+  let h = `<div class="stage"><h1>🏆 Podio final</h1><div class="st">${rank.length} participante${rank.length===1?"":"s"}</div><div class="podium">${slot(top[1],2)}${slot(top[0],1)}${slot(top[2],3)}</div></div>`;
   if(meName){
     const pos = rank.findIndex(r=>r.name===meName);
-    if(pos>=0) h += `<div class="card" style="text-align:center"><p class="sub">Tu posición</p><div class="big">${pos+1}°</div><div class="stat"><div><b>${rank[pos].score}</b>puntos</div><div><b>${rank[pos].correct}/${QUESTIONS.length}</b>correctas</div></div></div>`;
+    if(pos>=0){
+      const r=rank[pos];
+      const msg = pos===0?"¡Primer lugar! 🎉":pos<3?"¡Estás en el podio! 🎉":pos<rank.length/2?"¡Muy buen trabajo!":"¡Gracias por participar!";
+      h += `<div class="card mine later"><p class="sub">${msg}</p><div class="big">${pos+1}°</div><div class="stat"><div><b>${r.score}</b>puntos</div><div><b>${r.correct}/${N}</b>correctas</div><div><b>${r.avg!=null?r.avg.toFixed(1)+" s":"—"}</b>prom.</div></div></div>`;
+    }
   }
-  h += `<div class="card"><h2>Clasificación</h2><ul class="rank">${rank.map((r,i)=>`<li class="${r.name===meName?"me":""}"><span class="p">${i+1}</span><span class="n">${esc(r.name)}</span><b>${r.score}</b></li>`).join("")}</ul></div>`;
+  const med=["🥇","🥈","🥉"];
+  h += `<div class="card later"><h2>Clasificación</h2><ul class="rank">${rank.map((r,i)=>`<li class="${r.name===meName?"me":""}"><span class="p md">${med[i]||(i+1)}</span><span class="n">${esc(r.name)}</span><span class="ex">${r.correct}/${N}${r.avg!=null?" · "+r.avg.toFixed(1)+"s":""}</span><b>${r.score}</b></li>`).join("")}</ul></div>`;
   return h;
+}
+function playPodium(root){
+  const at=(ms,f)=>setTimeout(f,ms);
+  [[3,600],[2,2100],[1,3700]].forEach(([p,t])=>at(t,()=>{const el=root.querySelector(`.pod[data-p="${p}"]`);if(el)el.classList.add("on");}));
+  at(4300,()=>confetti());
+  at(5000,()=>root.querySelectorAll(".later").forEach(e=>e.classList.add("on")));
+}
+function confetti(){
+  const c=document.createElement("canvas");c.id="confetti";document.body.appendChild(c);
+  const x=c.getContext("2d"),dpr=window.devicePixelRatio||1;
+  const W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr;
+  const cols=["#f2c94c","#e74c3c","#3498db","#2ecc71","#9b59b6","#ffffff","#e67e22"];
+  const ps=Array.from({length:160},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.35,vx:(Math.random()-.5)*16*dpr,vy:(-Math.random()*14-6)*dpr,s:(5+Math.random()*7)*dpr,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
+  const t0=performance.now();
+  (function f(t){
+    x.clearRect(0,0,W,H);
+    ps.forEach(p=>{p.vy+=.35*dpr;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(t-t0<4500)requestAnimationFrame(f);else c.remove();
+  })(t0);
 }
 
 /* ================== INICIO ================== */
@@ -303,7 +348,7 @@ function startAdmin(){
   const send=(p,m)=>{try{if(p.conn&&p.conn.open)p.conn.send(m)}catch(e){}};
   const onlineCount=()=>[...players.values()].filter(p=>p.conn&&p.conn.open).length;
   const answeredCount=()=>[...players.values()].filter(p=>p.answers[cur]).length;
-  const ranking=()=>[...players.values()].map(p=>({name:p.name,score:p.score,correct:p.correct})).sort((a,b)=>b.score-a.score||b.correct-a.correct);
+  const ranking=()=>[...players.values()].map(p=>{const as=Object.values(p.answers);const avg=as.length?as.reduce((s,a)=>s+a.ms,0)/as.length/1000:null;return {name:p.name,score:p.score,correct:p.correct,avg:avg==null?null:Math.round(avg*10)/10};}).sort((a,b)=>b.score-a.score||b.correct-a.correct||(a.avg??99)-(b.avg??99));
 
   function renderLobby(){
     const list=[...players.values()];
@@ -380,7 +425,8 @@ function startAdmin(){
     const r=ranking();
     players.forEach(p=>send(p,{t:"podium",ranking:r}));
     show("a-done",false); show("a-pod",true);
-    $("a-pod").innerHTML=podiumHTML(r,null)+`<button class="ghost" onclick="location.href=location.pathname">Nueva sala</button>`;
+    $("a-pod").innerHTML=podiumHTML(r,null)+`<button class="ghost later" onclick="location.href=location.pathname">Nueva sala</button>`;
+    playPodium($("a-pod"));
   };
 
   $("a-csv").onclick=()=>{
@@ -462,7 +508,7 @@ function startStudent(code){
       only("s-fb");
     }
     if(m.t==="end"){ $("s-fscore").textContent=m.score;$("s-fcorr").textContent=m.correct; only("s-end"); }
-    if(m.t==="podium"){ $("s-pod").innerHTML=podiumHTML(m.ranking,myName); only("s-pod"); }
+    if(m.t==="podium"){ $("s-pod").innerHTML=podiumHTML(m.ranking,myName); only("s-pod"); window.scrollTo(0,0); playPodium($("s-pod")); }
   }
 
   function lock(){ $("s-opts").querySelectorAll("button").forEach(b=>b.disabled=true); }
