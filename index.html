@@ -81,9 +81,9 @@ button:disabled{opacity:.45;cursor:default}
 
   <!-- INICIO -->
   <section id="v-home">
-    <div class="brand">Escuela Sabática · Cuarta semana</div>
-    <h1>Profetas del Nuevo Testamento</h1>
-    <p class="sub">Examen en vivo · Efesios 2:19–3:7 · 12 preguntas</p>
+    <div class="brand">Escuela Sabática · Quinta semana</div>
+    <h1>Revelación e inspiración</h1>
+    <p class="sub">Examen en vivo · Apocalipsis 1 · 12 preguntas</p>
     <div class="card">
       <h2>Soy estudiante</h2>
       <p class="sub">Escanea el QR que muestra el administrador, o escribe el código de sala.</p>
@@ -185,18 +185,18 @@ const PREFIX     = "inverso-exam-";
 /* ================== PREGUNTAS ================== */
 // type: "mc" = marcar, "tf" = verdadero/falso. a = índice de la respuesta correcta.
 const QUESTIONS = [
- {type:"mc",q:"¿Qué significa la palabra griega «apostolos»?",o:["Mensajero o enviado","Maestro de la ley","Discípulo","Anciano de la iglesia"],a:0},
- {type:"tf",q:"La lección compara al Espíritu Santo con el «motor» de la inspiración divina, que permaneció igual en ambos testamentos.",a:0},
- {type:"tf",q:"Todos los profetas del Nuevo Testamento fueron también apóstoles.",a:1},
- {type:"mc",q:"¿Cuántas veces se autodenominó Pablo «apóstol» en sus epístolas?",o:["Tres","Siete","Doce","Quince"],a:2},
- {type:"mc",q:"¿Quién es la primera mujer identificada como «profetisa» en el Nuevo Testamento?",o:["María","Ana","Priscila","Dorcas"],a:1},
- {type:"mc",q:"¿Qué edad tenía Ana cuando reconoció al niño Jesús en el templo?",o:["66 años","70 años","84 años","90 años"],a:2},
- {type:"tf",q:"Las palabras proféticas de las cuatro hijas de Felipe forman parte del canon bíblico.",a:1},
- {type:"mc",q:"¿Qué dos profetas «consolaron y animaron mucho» a los hermanos según Hechos 15:32?",o:["Pablo y Bernabé","Pedro y Juan","Judas y Silas","Timoteo y Tito"],a:2},
- {type:"mc",q:"¿A quién encargó Pablo nombrar líderes para los creyentes de Creta?",o:["Timoteo","Tito","Silas","Apolos"],a:1},
- {type:"tf",q:"Deuteronomio 18:15, el profeta «como Moisés», es una profecía que apunta a Jesús.",a:0},
- {type:"mc",q:"¿Cómo consideraba Elena G. de White sus propios escritos?",o:["Una revelación superior a la Biblia","Una «luz menor» que guía a la «luz mayor»","Un reemplazo de las Escrituras","Un simple comentario histórico"],a:1},
- {type:"tf",q:"La serie «El gran conflicto» comienza y termina con las palabras «Dios es amor».",a:0},
+ {type:"mc",q:"Según Apocalipsis 1:1-3, ¿cuál fue la cadena de transmisión del mensaje?",o:["Dios Padre → Jesucristo → ángel → Juan → lectores","Jesucristo → Dios Padre → Juan → ángel → lectores","Ángel → Dios Padre → Juan → iglesias","Espíritu Santo → Pedro → Juan → lectores"],a:0},
+ {type:"mc",q:"¿En qué isla recibió Juan las visiones del Apocalipsis?",o:["Creta","Chipre","Patmos","Malta"],a:2},
+ {type:"mc",q:"¿Bajo qué emperador romano fue exiliado Juan?",o:["Nerón","Domiciano","Tito","Augusto"],a:1},
+ {type:"tf",q:"Antes de la caída de Jerusalén en el año 70 d. C., Juan se trasladó a Éfeso para supervisar las iglesias de Asia Menor.",a:0},
+ {type:"tf",q:"Según la lección, algunas partes de la Biblia son más inspiradas que otras.",a:1},
+ {type:"mc",q:"¿Qué texto dice: «Toda la Escritura es inspirada por Dios y útil para enseñar…»?",o:["Romanos 1:20","Hebreos 1:1-2","2 Timoteo 3:16","Salmo 19:1"],a:2},
+ {type:"mc",q:"¿A quién le ordenó Dios: «Escribe esto en un libro, para que sea recordado»?",o:["Moisés","Isaías","Juan","Daniel"],a:0},
+ {type:"tf",q:"Los profetas a veces citaron fuentes no inspiradas, e incluso las palabras de Satanás.",a:0},
+ {type:"mc",q:"Según Ezequiel 4, ¿cuántos días debía acostarse el profeta sobre su lado izquierdo por la casa de Israel?",o:["40 días","70 días","390 días","430 días"],a:2},
+ {type:"mc",q:"¿Cuál de estos profetas NO escribió ningún libro de la Biblia, sino que transmitió su mensaje oralmente?",o:["Jeremías","Elías","Ezequiel","Isaías"],a:1},
+ {type:"tf",q:"Elena G. de White consideraba que todo lo que escribía, incluidas sus cartas comunes, era dado bajo inspiración especial.",a:1},
+ {type:"mc",q:"Según la lección, ¿cómo se llama la revelación de Dios que se ve en el mundo natural?",o:["Revelación especial","Revelación general","Revelación oral","Revelación profética"],a:1},
 ];
 const TF_OPTS = ["Verdadero","Falso"];
 const SHAPES = ["▲","◆","●","■"];
